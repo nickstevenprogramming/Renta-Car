@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run start",
+  "outputDirectory": "start",
+  "framework": null,
+  "installCommand": "npm ci"
+}
