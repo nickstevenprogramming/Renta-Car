@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles.css";
 import logo from '../assets/logo4.png';
@@ -6,6 +6,22 @@ import logo from '../assets/logo4.png';
 const Navbar = ({ usuario, setUsuario }) => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const timeoutRef = useRef(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    setShowProfileMenu(true);
+  };
+
+  const handleMouseLeave = () => {
+    timeoutRef.current = setTimeout(() => {
+      setShowProfileMenu(false);
+    }, 300);
+  };
+
 
   const handleLogout = () => {
     localStorage.removeItem('usuario');
@@ -24,7 +40,7 @@ const Navbar = ({ usuario, setUsuario }) => {
 
 
           {usuario ? (
-            <div className="dropdown profile-container" style={{ position: 'relative' }}>
+            <div className="profile-container" style={{ position: 'relative' }} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
               <button className="btn-profile" style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
@@ -45,6 +61,7 @@ const Navbar = ({ usuario, setUsuario }) => {
               </button>
               
               <div className="dropdown-content profile-menu" style={{ 
+                display: showProfileMenu ? 'block' : 'none',
                 position: 'absolute', 
                 top: '120%', 
                 right: 0, 

@@ -76,6 +76,7 @@ def obtener_reservacion_por_id(id_reservacion):
                 u.Nombre, 
                 u.Apellido, 
                 u.Correo_Electronico,
+                u.Telefono,
                 v.Marca, 
                 v.Modelo
             FROM RESERVACIONES r
@@ -103,25 +104,21 @@ def crear_reservacion(data):
     conexion = get_conexion()
     try:
         cursor = conexion.cursor()
-
+        
         # Validar datos
         required = ['ID_Vehiculo', 'ID_Usuario', 'Ubicacion_Entrega', 'Fecha_Recogida', 'Fecha_Devolucion', 'Ubicacion_Devolucion', 'Monto_Reservacion']
         missing = [field for field in required if field not in data or data[field] is None]
         if missing:
             raise ValueError(f"Campos faltantes o nulos: {', '.join(missing)}")
-
-        # Convertir tipos de datos
         id_vehiculo = int(data['ID_Vehiculo'])
         id_usuario = int(data['ID_Usuario'])
         monto = float(data['Monto_Reservacion'])
-
-        # Parsear fechas
         fecha_recogida = datetime.fromisoformat(data['Fecha_Recogida']).date() if data['Fecha_Recogida'] else None
         fecha_devolucion = datetime.fromisoformat(data['Fecha_Devolucion']).date() if data['Fecha_Devolucion'] else None
-
+        
         if fecha_recogida is None or fecha_devolucion is None:
             raise ValueError("Fechas inválidas")
-
+        
         sql = """
         INSERT INTO RESERVACIONES (ID_Vehiculo, ID_Usuario, Ubicacion_Entrega, Fecha_Recogida, Fecha_Devolucion, Ubicacion_Devolucion, Monto_Reservacion)
         OUTPUT INSERTED.ID_Reservacion
@@ -136,7 +133,7 @@ def crear_reservacion(data):
             data['Ubicacion_Devolucion'],
             monto
         ))
-
+        
         row = cursor.fetchone()
         if row:
             nuevo_id = int(row[0])
@@ -144,7 +141,7 @@ def crear_reservacion(data):
             return {"id": nuevo_id, "message": "Reservación creada"}
         else:
             raise ValueError("No se insertó la reservación")
-
+        
     except Exception as e:
         if conexion:
             conexion.rollback()
@@ -245,20 +242,20 @@ def generar_pdf_reservacion(id_reservacion):
                 with PILImage.open(logo_path) as img:
                     if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
                         img = img.convert('RGBA')
-                    img = img.resize((550, 120), PILImage.Resampling.LANCZOS)
+                    img = img.resize((550, 90), PILImage.Resampling.LANCZOS)
                     
                     img_buffer = BytesIO()
                     img.save(img_buffer, format='PNG', optimize=True)
                     img_buffer.seek(0)
-                    story.append(Image(img_buffer, width=550, height=120))
+                    story.append(Image(img_buffer, width=550, height=90))
             except Exception as e:
                 print(f"Error logo: {e}")
                 story.append(Paragraph("RENTA-CAR", title_style))
         
-        story.append(Spacer(1, 12))
+        story.append(Spacer(1, 10))
         story.append(Paragraph("COMPROBANTE DE RESERVACIÓN", title_style))
         story.append(Paragraph(f"Reservación # {reservacion['ID_Reservacion']}", subtitle_style))
-        story.append(Spacer(1, 20))
+        story.append(Spacer(1, 12))
         
         story.append(Table(
             [['']],
@@ -266,7 +263,7 @@ def generar_pdf_reservacion(id_reservacion):
             rowHeights=[5],
             style=TableStyle([('BACKGROUND', (0,0), (-1,-1), HexColor('#6d28d9'))])
         ))
-        story.append(Spacer(1, 20))
+        story.append(Spacer(1, 15))
         
         fecha_recogida = reservacion.get('Fecha_Recogida', '')
         fecha_devolucion = reservacion.get('Fecha_Devolucion', '')
@@ -288,6 +285,7 @@ def generar_pdf_reservacion(id_reservacion):
             ["ID Reservación", str(reservacion['ID_Reservacion'])],
             ["Cliente", f"{reservacion.get('Nombre', '')} {reservacion.get('Apellido', '')}".strip()],
             ["Correo", reservacion.get('Correo_Electronico', 'N/A')],
+            ["Teléfono", reservacion.get('Telefono', 'N/A')],
             ["Vehículo", f"{reservacion.get('Marca', '')} {reservacion.get('Modelo', '')}".strip()],
             ["Recogida", reservacion.get('Ubicacion_Entrega', 'N/A')],
             ["Devolución", reservacion.get('Ubicacion_Devolucion', 'N/A')],
@@ -308,13 +306,13 @@ def generar_pdf_reservacion(id_reservacion):
             ('FONTSIZE', (0,1), (-1,-1), 12),
             ('LEFTPADDING', (0,0), (-1,-1), 15),
             ('RIGHTPADDING', (0,0), (-1,-1), 15),
-            ('TOPPADDING', (0,0), (-1,-1), 12),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 12),
+            ('TOPPADDING', (0,0), (-1,-1), 10),  # Reducido padding vertical
+            ('BOTTOMPADDING', (0,0), (-1,-1), 10),
         ]))
         story.append(table)
         
         # Footer
-        story.append(Spacer(1, 30))
+        story.append(Spacer(1, 20))
         story.append(Paragraph(
             "Gracias por confiar en Renta-Car",
             ParagraphStyle('Thanks', fontSize=14, textColor=HexColor('#6d28d9'), alignment=1)
@@ -330,9 +328,9 @@ def generar_pdf_reservacion(id_reservacion):
         )
         story.append(Paragraph("Renta-Car © 2025 | soporte@renta-car.com | +1 (809) 555-0198", footer_style))
         
-        # Construcción PDF
+        # Construccion de PDF
         doc.build(story)
-
+        
         pdf_bytes = buffer.getvalue()
         buffer.close()
         

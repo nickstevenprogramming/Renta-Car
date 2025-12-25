@@ -17,9 +17,9 @@ const Footer = () => {
                 <div>
                     <h4 style={{ fontSize: '18px', marginBottom: '20px', borderBottom: '2px solid #4b5563', paddingBottom: '10px', display: 'inline-block' }}>Contacto</h4>
                     <ul style={{ listStyle: 'none', padding: 0, color: '#d1d5db', lineHeight: '2' }}>
-                        <li>📍 Av. Winston Churchill, Santo Domingo</li>
-                        <li>📞 +1 (809) 555-0123</li>
-                        <li>💬 WhatsApp: +1 (829) 555-0199</li>
+                        <li>📍 Av. Venezuela, Santo Domingo Este</li>
+                        <li>📞 +1 (829) 835-4979</li>
+                        <li>💬 WhatsApp: +1 (829) 835-4979</li>
                         <li>✉️ contacto@rentacar.do</li>
                     </ul>
                 </div>
@@ -33,7 +33,7 @@ const Footer = () => {
                     </div>
                 </div>
             </div>
-
+            
             <div style={{ borderTop: '1px solid #374151', paddingTop: '20px', textAlign: 'center', color: '#6b7280', fontSize: '14px' }}>
                 <p>&copy; 2025 Renta Car. Todos los derechos reservados.</p>
                 <div className="footer-links" style={{ justifyContent: 'center', fontSize: '14px' }}>

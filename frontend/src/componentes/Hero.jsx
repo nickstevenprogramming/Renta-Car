@@ -43,8 +43,11 @@ export default function Hero({ selectedVehicle = null, usuario = null, onCategor
       setFormulario((prev) => ({
         ...prev,
         nombre: usuario?.Nombre || "",
+        apellido: usuario?.Apellido || "",
         cedula: usuario?.Cedula || "",
         licencia: usuario?.Licencia_Conducir || "",
+        email: usuario?.Correo_Electronico || "",
+        telefono: usuario?.Telefono || "",
         categoria: selectedVehicle?.Tipo ? selectedVehicle.Tipo.toLowerCase() : "todos"
       }));
     }
