@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import { useNavigate } from "react-router-dom";
 import 'react-tabs/style/react-tabs.css';
 import "../styles.css";
+import { clearUserSession } from "../utils/session";
 
 const API_URL = process.env.REACT_APP_API_URL || '';
 
@@ -33,6 +35,7 @@ const modalContentStyle = {
 };
 
 export default function AdminDashboard() {
+  const navigate = useNavigate();
   const [vehiculos, setVehiculos] = useState([]);
   const [vehFilter, setVehFilter] = useState({ marca: "", ano: "", capacidad: "" });
   const [vehFilterStatus, setVehFilterStatus] = useState("todos");
@@ -100,6 +103,13 @@ export default function AdminDashboard() {
     setLoading(true);
     setError(null);
     try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        clearUserSession();
+        navigate("/login");
+        return;
+      }
+
       // Fetch Catalogs in parallel
       const [marcasRes, modelosRes, tiposRes, coloresRes, razonesRes] = await Promise.all([
         fetch(`${API_URL}/api/catalogos/marcas`),
@@ -123,6 +133,11 @@ export default function AdminDashboard() {
       const usrRes = await fetch(`${API_URL}/api/usuarios`, {
         headers: authHeaders()
       });
+      if (usrRes.status === 401 || usrRes.status === 403) {
+        clearUserSession();
+        navigate("/login");
+        return;
+      }
       let usrData = await usrRes.json();
       
       let usersArray = [];
@@ -139,6 +154,11 @@ export default function AdminDashboard() {
       const resRes = await fetch(`${API_URL}/api/reservaciones`, {
         headers: authHeaders()
       });
+      if (resRes.status === 401 || resRes.status === 403) {
+        clearUserSession();
+        navigate("/login");
+        return;
+      }
       if (!resRes.ok) throw new Error("Error al cargar reservaciones");
       setReservaciones(await resRes.json() || []);
 

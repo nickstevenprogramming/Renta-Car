@@ -2,6 +2,7 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles.css";
 import logo from '../assets/logo4.png';
+import { clearUserSession, isAdminUser } from "../utils/session";
 
 const Navbar = ({ usuario, setUsuario }) => {
   const navigate = useNavigate();
@@ -24,8 +25,7 @@ const Navbar = ({ usuario, setUsuario }) => {
 
 
   const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('usuario');
+    clearUserSession();
     setUsuario(null);
     navigate('/');
     setMenuOpen(false);
@@ -34,7 +34,7 @@ const Navbar = ({ usuario, setUsuario }) => {
   return (
     <nav className="navbar">
       <div className="nav-unido">
-        <div className="logo" onClick={() => (window.location.href = "/")} style={{ cursor: "pointer" }}>
+        <div className="logo" onClick={() => navigate("/")} style={{ cursor: "pointer" }}>
           <img src={logo} alt="Renta Car Logo" style={{ height: "50px" }} />
         </div>
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
@@ -55,9 +55,9 @@ const Navbar = ({ usuario, setUsuario }) => {
                 fontWeight: 'bold'
               }}>
                 <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'linear-gradient(135deg, #6d28d9, #4f46e5)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>
-                  {usuario.Nombre.charAt(0)}
+                  {(usuario?.Nombre || "?").charAt(0)}
                 </div>
-                <span>{usuario.Nombre}</span>
+                <span>{usuario?.Nombre || "Usuario"}</span>
                 <span>▼</span>
               </button>
               
@@ -83,8 +83,8 @@ const Navbar = ({ usuario, setUsuario }) => {
                   <p style={{ marginBottom: '5px' }}><strong>Tel:</strong> {usuario.Telefono}</p>
                 </div>
                 
-                {usuario.esAdmin && (
-                  <button onClick={() => window.location.href = "/admin"} style={{ width: '100%', padding: '10px', marginBottom: '10px', background: '#f3f4f6', color: '#1f2937', border: 'none', borderRadius: '6px', cursor: 'pointer', textAlign: 'left', fontWeight: 'bold' }}>
+                {isAdminUser(usuario) && (
+                  <button onClick={() => navigate("/admin")} style={{ width: '100%', padding: '10px', marginBottom: '10px', background: '#f3f4f6', color: '#1f2937', border: 'none', borderRadius: '6px', cursor: 'pointer', textAlign: 'left', fontWeight: 'bold' }}>
                     Dashboard Admin
                   </button>
                 )}

@@ -2,6 +2,11 @@ import os
 import sys
 import traceback
 from pathlib import Path
+from dotenv import load_dotenv
+
+# Ensure backend/.env is loaded before importing the Flask app.
+BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
 
 print("Working dir:", Path(__file__).resolve().parent)
 print("Python exe:", sys.executable)

@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-const API_URL = process.env.REACT_APP_API_URL || '';
 import Navbar from "./componentes/Navbar";
 import Hero from "./componentes/Hero";
 import Servicios from "./componentes/Servicios";
@@ -12,10 +10,14 @@ import Login from "./componentes/login";
 import Register from "./componentes/Register";
 import Categorias from "./componentes/categorias";
 import ReservationModal from "./componentes/ReservationModal";
+import { getStoredUser, isAdminUser, normalizeUser } from "./utils/session";
+
+const API_URL = process.env.REACT_APP_API_URL || '';
 
 function App() {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [usuario, setUsuario] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
   const [vehicleFilter, setVehicleFilter] = useState("todos");
   const [vehiculos, setVehiculos] = useState([]);
   
@@ -67,14 +69,16 @@ function App() {
   }
 
   function handleLogin(userData) {
-    setUsuario(userData);
-    localStorage.setItem('usuario', JSON.stringify(userData));
+    const normalized = normalizeUser(userData);
+    setUsuario(normalized);
+    if (normalized) localStorage.setItem("usuario", JSON.stringify(normalized));
     restoreTempVehicle();
   }
 
   function handleRegister(userData) {
-    setUsuario(userData);
-    localStorage.setItem('usuario', JSON.stringify(userData));
+    const normalized = normalizeUser(userData);
+    setUsuario(normalized);
+    if (normalized) localStorage.setItem("usuario", JSON.stringify(normalized));
     restoreTempVehicle();
   }
 
@@ -89,12 +93,17 @@ function App() {
   }
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('usuario');
+    const savedUser = getStoredUser();
     if (savedUser) {
-      setUsuario(JSON.parse(savedUser));
+      setUsuario(savedUser);
       restoreTempVehicle();
+    } else {
+      setUsuario(null);
     }
+    setAuthReady(true);
   }, []);
+
+  const isAdminAuthenticated = !!localStorage.getItem("authToken") && isAdminUser(usuario);
 
   return (
     <Router>
@@ -132,7 +141,11 @@ function App() {
           <Route
             path="/admin"
             element={
-              usuario && usuario.esAdmin ? (
+              !authReady ? (
+                <div style={{ padding: "2rem", textAlign: "center" }}>
+                  <h2>Validando sesión...</h2>
+                </div>
+              ) : isAdminAuthenticated ? (
                 <AdminDashboard />
               ) : (
                 <div style={{ padding: "2rem", textAlign: "center" }}>

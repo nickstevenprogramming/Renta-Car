@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Python virtual env and caches
+.venv/
+backend/.venv/
+__pycache__/
+*.pyc
+
+# Build artifacts
+build/
+dist/
+frontend/build/
+
+# Local environment files
+.env
+.env.*
+backend/.env
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+!.env.example
+!backend/.env.example
+!frontend/.env.example
+!backend/.env.azure.template
+
+# IDE and OS
+.vscode/
+.DS_Store

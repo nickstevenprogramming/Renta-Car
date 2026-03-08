@@ -1,13 +1,13 @@
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
+from app.config import FRONTEND_URL, JWT_SECRET
 from app.routes.vehiculos_routes import bp as vehiculo_bp
 from app.routes.usuarios_routes import bp as usuarios_bp
 from app.routes.reservaciones_routes import bp as reservacion_bp
 from app.routes.sucursales_routes import bp as sucursales_bp
 from app.routes.extras_routes import bp as extras_bp
 from app.routes.catalogos_routes import bp as catalogos_bp
-from app.config import FRONTEND_URL, JWT_SECRET
 
 def create_app():
     app = Flask(__name__, static_folder='static', static_url_path='/static')

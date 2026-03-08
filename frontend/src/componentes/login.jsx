@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles.css";
+import { saveUserSession } from "../utils/session";
 
 // API URL from environment or default to relative path for development
 const API_URL = process.env.REACT_APP_API_URL || '';
@@ -46,12 +47,7 @@ export default function Login({ onLogin }) {
       if (!res.ok) throw new Error(data.error);
 
       // Store JWT token in localStorage
-      if (data.token) {
-        localStorage.setItem('authToken', data.token);
-      }
-      
-      // Pass user data to parent component
-      const userData = data.user || data;
+      const userData = saveUserSession(data.user || data, data.token);
       onLogin(userData);
       
       setExito("✅ Inicio de sesión exitoso. Redirigiendo...");

@@ -1,0 +1,15 @@
+# Local env
+.env
+
+# Python env and cache
+.venv/
+__pycache__/
+*.pyc
+
+# Node modules accidentally added
+node_modules/
+
+# Runtime uploads (keep directory, ignore files)
+app/static/uploads/*
+!app/static/uploads/.gitkeep
+
