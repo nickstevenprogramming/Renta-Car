@@ -18,7 +18,7 @@ def obtener_reservaciones():
             raise Exception("No se pudo establecer conexión con la base de datos")
         cursor = conexion.cursor()
         consulta = """
-            SELECT ID_Reservacion, ID_Vehiculo, ID_Usuario, Monto_Reservacion, Fecha_Reservacion
+            SELECT ID_Reservacion, ID_Vehiculo, ID_Usuario, Monto_Reservacion, Fecha_Reservacion, ISNULL(ID_Estado, 1) as ID_Estado
             FROM RESERVACIONES
         """
         cursor.execute(consulta)
@@ -40,7 +40,7 @@ def obtener_reservaciones_por_usuario(id_usuario):
             raise Exception("No se pudo establecer conexión con la base de datos")
         cursor = conexion.cursor()
         consulta = """
-            SELECT ID_Reservacion, ID_Vehiculo, ID_Usuario, Monto_Reservacion, Fecha_Reservacion
+            SELECT ID_Reservacion, ID_Vehiculo, ID_Usuario, Monto_Reservacion, Fecha_Reservacion, ISNULL(ID_Estado, 1) as ID_Estado
             FROM RESERVACIONES
             WHERE ID_Usuario = ?
         """
@@ -89,7 +89,7 @@ def obtener_reservacion_por_id(id_reservacion):
         fila = cursor.fetchone()
         if not fila:
             print(f"Reservación {id_reservacion} no encontrada")
-            raise Exception(f"Reservación {id_reservacion} no encontrada")
+            return None
         resultado = dict(zip(columnas, fila))
         print(f"Reservación {id_reservacion} encontrada: {resultado}")
         return resultado
@@ -120,9 +120,9 @@ def crear_reservacion(data):
             raise ValueError("Fechas inválidas")
         
         sql = """
-        INSERT INTO RESERVACIONES (ID_Vehiculo, ID_Usuario, Ubicacion_Entrega, Fecha_Recogida, Fecha_Devolucion, Ubicacion_Devolucion, Monto_Reservacion)
+        INSERT INTO RESERVACIONES (ID_Vehiculo, ID_Usuario, Ubicacion_Entrega, Fecha_Recogida, Fecha_Devolucion, Ubicacion_Devolucion, Monto_Reservacion, ID_Estado)
         OUTPUT INSERTED.ID_Reservacion
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, 1)
         """
         cursor.execute(sql, (
             id_vehiculo,

@@ -24,6 +24,7 @@ const Navbar = ({ usuario, setUsuario }) => {
 
 
   const handleLogout = () => {
+    localStorage.removeItem('authToken');
     localStorage.removeItem('usuario');
     setUsuario(null);
     navigate('/');
@@ -78,7 +79,7 @@ const Navbar = ({ usuario, setUsuario }) => {
                   <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>{usuario.Correo_Electronico}</p>
                 </div>
                 <div style={{ fontSize: '14px', color: '#444', marginBottom: '15px' }}>
-                  <p style={{ marginBottom: '5px' }}><strong>Cédula:</strong> {usuario.Cedula}</p>
+                  <p style={{ marginBotton: '5px' }}><strong>Lic:</strong> {usuario.Licencia_Conducir}</p>
                   <p style={{ marginBottom: '5px' }}><strong>Tel:</strong> {usuario.Telefono}</p>
                 </div>
                 

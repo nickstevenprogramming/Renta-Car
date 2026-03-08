@@ -111,3 +111,28 @@ def reset_vehiculos():
     except Exception as e:
         print("Error al resetear vehiculos:", e)
         return jsonify({"error": "Error interno"}), 500
+
+def activar_vehiculo_controller(id_vehiculo):
+    """Activa un vehículo"""
+    try:
+        exito = repositorio_vehiculos.activar_vehiculo(id_vehiculo)
+        if exito:
+            return jsonify({"message": "Vehículo activado exitosamente"}), 200
+        return jsonify({"error": "No se pudo activar el vehículo"}), 400
+    except Exception as e:
+        print("Error al activar vehiculo:", e)
+        return jsonify({"error": "Error interno"}), 500
+
+def desactivar_vehiculo_controller(id_vehiculo):
+    """Desactiva un vehículo con una razón"""
+    try:
+        data = request.get_json() or {}
+        id_razon = data.get('id_razon')
+        
+        exito = repositorio_vehiculos.desactivar_vehiculo(id_vehiculo, id_razon)
+        if exito:
+            return jsonify({"message": "Vehículo desactivado exitosamente"}), 200
+        return jsonify({"error": "No se pudo desactivar el vehículo"}), 400
+    except Exception as e:
+        print("Error al desactivar vehiculo:", e)
+        return jsonify({"error": "Error interno"}), 500

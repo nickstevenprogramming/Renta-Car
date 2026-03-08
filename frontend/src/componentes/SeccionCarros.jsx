@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import "../styles.css";
 import TarjetaReserva from "./TarjetaReserva";
+const API_URL = process.env.REACT_APP_API_URL || "";
 
-export default function SeccionCarros({ onSelectVehicle, currentFilter = "todos", onFilterChange, vehiculos = [] }) {
+export default function SeccionCarros({ onSelectVehicle, onOpenReservation, currentFilter = "todos", onFilterChange, vehiculos = [] }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -86,15 +87,23 @@ export default function SeccionCarros({ onSelectVehicle, currentFilter = "todos"
                   key={carro.ID_Vehiculo}
                   carro={{
                     ID_Vehiculo: carro.ID_Vehiculo,
-                    imagen: carro.ImagenUrl ? `http://127.0.0.1:5000${carro.ImagenUrl}` : "./assets/lambo.jpg",
+                    imagen: carro.ImagenUrl ? `${API_URL}${carro.ImagenUrl}` : "./assets/lambo.jpg",
                     nombre: `${carro.Marca} ${carro.Modelo}`,
+                    Marca: carro.Marca,
+                    Modelo: carro.Modelo,
                     tipo: carro.Tipo,
+                    Tipo: carro.Tipo,
                     precio: carro.Precio,
+                    Precio: carro.Precio,
                     combustible: carro.TipoCombustible || carro.Tipo,
                     asientos: carro.CapacidadPasajeros,
+                    CapacidadPasajeros: carro.CapacidadPasajeros,
                     año: carro.Año,
+                    Año: carro.Año,
+                    ImagenUrl: carro.ImagenUrl,
                   }}
-                  onSelect={(vehiculo) => onSelectVehicle(vehiculo || carro)}
+                  onSelect={(vehiculo) => onSelectVehicle && onSelectVehicle(vehiculo || carro)}
+                  onOpenReservation={(vehiculo) => onOpenReservation && onOpenReservation(vehiculo)}
                 />
               </div>
             ))

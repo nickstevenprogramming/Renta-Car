@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import "../styles.css";
+
+const API_URL = process.env.REACT_APP_API_URL || '';
 import TarjetaReserva from "./TarjetaReserva";
 
 export default function Categorias({ onSelectVehicle }) {
@@ -14,7 +16,7 @@ export default function Categorias({ onSelectVehicle }) {
   useEffect(() => {
     async function fetchVehiculos() {
       try {
-        const res = await fetch("/api/vehiculos");
+        const res = await fetch(`${API_URL}/api/vehiculos`);
         if (!res.ok) throw new Error("Error al cargar vehículos");
         const data = await res.json();
         setVehiculos(data);

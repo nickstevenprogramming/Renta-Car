@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles.css";
 
+const API_URL = process.env.REACT_APP_API_URL || '';
+
 export default function Register({ onRegister }) {
   const navigate = useNavigate();
   const [formulario, setFormulario] = useState({
@@ -77,7 +79,7 @@ export default function Register({ onRegister }) {
     delete payload.confirmPassword;
 
     try {
-      const res = await fetch('/api/usuarios', {
+      const res = await fetch(`${API_URL}/api/usuarios`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

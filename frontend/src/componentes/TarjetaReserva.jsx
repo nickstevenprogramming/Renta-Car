@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "../styles.css";
 
-export default function TarjetaReserva({ carro = {}, onSelect }) {
+export default function TarjetaReserva({ carro = {}, onSelect, onOpenReservation }) {
   const {
     imagen = "./assets/lambo.jpg",
     nombre = "Sin nombre",
@@ -19,15 +19,13 @@ export default function TarjetaReserva({ carro = {}, onSelect }) {
   };
 
   const handleReserveFromModal = () => {
-    if (onSelect) {
-      console.log("Pasando vehículo a onSelect desde modal:", carro); // Depuracion
-      onSelect(carro); // Llama a la función onSelect para seleccionar el vehiculo
+    if (onOpenReservation) {
+      console.log("Abriendo modal de reservación para:", carro);
+      onOpenReservation(carro);
+    } else if (onSelect) {
+      onSelect(carro);
     }
-    const heroSection = document.querySelector(".hero-section");
-    if (heroSection) {
-      heroSection.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-    setModalOpen(false); // Cierra el modal
+    setModalOpen(false);
   };
 
   return (
@@ -54,12 +52,12 @@ export default function TarjetaReserva({ carro = {}, onSelect }) {
             <button
               className="btn btn-primario"
               onClick={() => {
-                if (onSelect) {
-                  console.log("Pasando vehículo a onSelect desde botón:", carro); // Depuracion
+                if (onOpenReservation) {
+                  console.log("Abriendo modal de reservación desde botón:", carro);
+                  onOpenReservation(carro);
+                } else if (onSelect) {
                   onSelect(carro);
                 }
-                const heroSection = document.querySelector(".hero-section");
-                if (heroSection) heroSection.scrollIntoView({ behavior: "smooth", block: "start" });
               }}
             >
               Reservar

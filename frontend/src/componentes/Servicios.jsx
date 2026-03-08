@@ -44,45 +44,107 @@ export default function Servicios() {
           Nuestros Servicios
         </h2>
         
-        <div className="servicios-grid" style={{ position: "relative", overflow: "hidden", padding: "20px 0" }}>
+        <div className="servicios-grid" style={{ position: "relative", overflow: "visible", padding: "40px 0" }}>
           <div
             className="servicios-carousel"
             style={{
               display: "flex",
-              transform: `translateX(-${currentIndex * 33.33}%)`, 
-              transition: isTransitioning ? "none" : "transform 0.5s ease-in-out",
+              justifyContent: "center",
+              alignItems: "center",
               gap: "20px",
               width: "100%",
+              transition: isTransitioning ? "none" : "all 0.5s ease-in-out",
             }}
           >
-            {servicioItems.map((s) => (
-              <article
-                key={s.id}
-                className="servicio-tarjeta"
-                style={{
-                  flex: "0 0 calc(45.15% - 25px)", 
-                  minWidth: "calc(45.15% - 25px)",
-                  background: "#fff",
-                  borderRadius: "12px",
-                  padding: "28px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                  textAlign: "center",
-                  border: "1px solid #e6eef6",
-                }}
-              >
-                <div className="servicio-icono" style={{ 
-                  marginBottom: "20px", 
-                  display: "flex", 
-                  justifyContent: "center",
-                  fontSize: "48px",
-                  color: "var(--brand)"
-                }}>
-                  {s.icon}
-                </div>
-                <h3 style={{ fontSize: "1.4rem", color: "#0f172a", marginBottom: "12px" }}>{s.titulo}</h3>
-                <p style={{ fontSize: "1rem", color: "#4b5563", lineHeight: "1.6" }}>{s.descripcion}</p>
-              </article>
-            ))}
+            {/* Left item (smaller, opaque) */}
+            {(() => {
+                const leftIndex = (currentIndex - 1 + servicioItems.length) % servicioItems.length;
+                const left = servicioItems[leftIndex];
+                return (
+                    <article
+                        key={left.id}
+                        onClick={prevSlide}
+                        style={{
+                            flex: "0 0 280px",
+                            background: "#fff",
+                            borderRadius: "12px",
+                            padding: "24px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                            textAlign: "center",
+                            border: "1px solid #e6eef6",
+                            opacity: 0.6,
+                            transform: "scale(0.85)",
+                            cursor: "pointer",
+                            transition: "all 0.3s ease"
+                        }}
+                    >
+                        <div style={{ marginBottom: "16px", display: "flex", justifyContent: "center", fontSize: "36px", color: "var(--brand)" }}>
+                            {left.icon}
+                        </div>
+                        <h3 style={{ fontSize: "1.2rem", color: "#0f172a", marginBottom: "8px" }}>{left.titulo}</h3>
+                        <p style={{ fontSize: "0.9rem", color: "#4b5563", lineHeight: "1.5" }}>{left.descripcion}</p>
+                    </article>
+                );
+            })()}
+
+            {/* Center item (larger, full opacity) */}
+            {(() => {
+                const center = servicioItems[currentIndex];
+                return (
+                    <article
+                        key={center.id}
+                        style={{
+                            flex: "0 0 350px",
+                            background: "linear-gradient(135deg, #f5f3ff 0%, #fff 100%)",
+                            borderRadius: "16px",
+                            padding: "32px",
+                            boxShadow: "0 10px 30px rgba(109, 40, 217, 0.15)",
+                            textAlign: "center",
+                            border: "2px solid #c4b5fd",
+                            transform: "scale(1.05)",
+                            zIndex: 2,
+                            transition: "all 0.3s ease"
+                        }}
+                    >
+                        <div style={{ marginBottom: "20px", display: "flex", justifyContent: "center", fontSize: "52px", color: "var(--brand)" }}>
+                            {center.icon}
+                        </div>
+                        <h3 style={{ fontSize: "1.5rem", color: "#0f172a", marginBottom: "12px", fontWeight: "700" }}>{center.titulo}</h3>
+                        <p style={{ fontSize: "1rem", color: "#4b5563", lineHeight: "1.6" }}>{center.descripcion}</p>
+                    </article>
+                );
+            })()}
+
+            {/* Right item (smaller, opaque) */}
+            {(() => {
+                const rightIndex = (currentIndex + 1) % servicioItems.length;
+                const right = servicioItems[rightIndex];
+                return (
+                    <article
+                        key={right.id}
+                        onClick={nextSlide}
+                        style={{
+                            flex: "0 0 280px",
+                            background: "#fff",
+                            borderRadius: "12px",
+                            padding: "24px",
+                            boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                            textAlign: "center",
+                            border: "1px solid #e6eef6",
+                            opacity: 0.6,
+                            transform: "scale(0.85)",
+                            cursor: "pointer",
+                            transition: "all 0.3s ease"
+                        }}
+                    >
+                        <div style={{ marginBottom: "16px", display: "flex", justifyContent: "center", fontSize: "36px", color: "var(--brand)" }}>
+                            {right.icon}
+                        </div>
+                        <h3 style={{ fontSize: "1.2rem", color: "#0f172a", marginBottom: "8px" }}>{right.titulo}</h3>
+                        <p style={{ fontSize: "0.9rem", color: "#4b5563", lineHeight: "1.5" }}>{right.descripcion}</p>
+                    </article>
+                );
+            })()}
           </div>
           
           <button

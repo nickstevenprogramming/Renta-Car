@@ -1,6 +1,7 @@
 from flask import Blueprint, current_app, request, jsonify, send_file
 import os
 from app.utils.file_utils import allowed_file, unique_filename
+from app.utils.auth import require_admin
 from app.repositorio.repositorio_vehiculos import inserte_vehiculo
 
 from app.controladores.controladores_vehiculos import (
@@ -14,6 +15,7 @@ from app.controladores.controladores_vehiculos import (
 bp = Blueprint('vehiculos', __name__, url_prefix='/api/vehiculos')
 
 @bp.route('', methods=['POST'])
+@require_admin
 def crear_vehiculo_con_imagen():
     try:
         marca = request.form.get('Marca')
@@ -78,10 +80,24 @@ def crear_vehiculo_con_imagen():
 
     except Exception as e:
         current_app.logger.exception("Error crear vehiculo")
-        return jsonify({"error": "Error interno", "details": str(e)}), 500
+        return jsonify({"error": "Error interno"}), 500
 
 bp.route('', methods=['GET'])(listar_vehiculos)
 bp.route('/<int:id_vehiculo>', methods=['GET'])(obtener_vehiculo)
-bp.route('/<int:id_vehiculo>', methods=['PUT'])(actualizar_vehiculo)
-bp.route('/<int:id_vehiculo>', methods=['DELETE'])(eliminar_vehiculo)
-bp.route('/reset-all', methods=['DELETE'])(reset_vehiculos)
+bp.route('/<int:id_vehiculo>', methods=['PUT'])(require_admin(actualizar_vehiculo))
+bp.route('/<int:id_vehiculo>', methods=['DELETE'])(require_admin(eliminar_vehiculo))
+bp.route('/reset-all', methods=['DELETE'])(require_admin(reset_vehiculos))
+
+# Rutas para activar/desactivar vehículos
+from app.controladores.controladores_vehiculos import activar_vehiculo_controller, desactivar_vehiculo_controller
+
+@bp.route('/<int:id_vehiculo>/activate', methods=['PUT'])
+@require_admin
+def activar_vehiculo_route(id_vehiculo):
+    return activar_vehiculo_controller(id_vehiculo)
+
+@bp.route('/<int:id_vehiculo>/deactivate', methods=['PUT'])
+@require_admin
+def desactivar_vehiculo_route(id_vehiculo):
+    return desactivar_vehiculo_controller(id_vehiculo)
+

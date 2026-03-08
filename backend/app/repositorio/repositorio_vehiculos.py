@@ -6,13 +6,28 @@ def obtener_vehiculos(limite=50, marca=None):
     try:
         cursor = conn.cursor()
 
-        base_fields = "ID_Vehiculo, Marca, Modelo, Año, Tipo, Precio, Color, CapacidadPasajeros, ImagenUrl"
+        base_fields = """
+            V.ID_Vehiculo, V.Marca, V.Modelo, V.Año, V.Tipo, V.Precio, V.Color, 
+            V.CapacidadPasajeros, V.ImagenUrl, 
+            ISNULL(V.Estado, 'activo') as Estado,
+            R.Nombre_Razon as RazonInactivacion
+        """
         if marca:
-            sql = f"SELECT TOP {int(limite)} {base_fields} FROM VEHICULOS WHERE Marca = ?"
+            sql = f"""
+                SELECT TOP {int(limite)} {base_fields} 
+                FROM VEHICULOS V
+                LEFT JOIN RazonesInactivacion R ON V.ID_RazonInactivacion = R.ID_Razon
+                WHERE V.Marca = ?
+            """
             cursor.execute(sql, (marca,))
         else:
-            sql = f"SELECT TOP {int(limite)} {base_fields} FROM VEHICULOS"
+            sql = f"""
+                SELECT TOP {int(limite)} {base_fields} 
+                FROM VEHICULOS V
+                LEFT JOIN RazonesInactivacion R ON V.ID_RazonInactivacion = R.ID_Razon
+            """
             cursor.execute(sql)
+
 
         columnas = [col[0] for col in cursor.description]
         filas = cursor.fetchall()
@@ -39,9 +54,9 @@ def inserte_vehiculo(data):
         cursor = conn.cursor()
 
         sql = """
-        INSERT INTO VEHICULOS (Marca, Modelo, Año, Tipo, Precio, Color, CapacidadPasajeros, ImagenUrl)
+        INSERT INTO VEHICULOS (Marca, Modelo, Año, Tipo, Precio, Color, CapacidadPasajeros, ImagenUrl, Estado)
         OUTPUT INSERTED.ID_Vehiculo
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'activo')
         """
         cursor.execute(sql, (
             data.get('Marca'),
@@ -112,3 +127,47 @@ def truncate_vehiculos():
         print(f"Error en truncate_vehiculos: {e}")
         conn.rollback()
         return False
+
+def activar_vehiculo(id_vehiculo):
+    """Activa un vehículo cambiando su estado a 'activo'"""
+    conn = get_conexion()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE VEHICULOS SET Estado = 'activo', ID_RazonInactivacion = NULL WHERE ID_Vehiculo = ?",
+            (id_vehiculo,)
+        )
+        affected = cursor.rowcount
+        if affected == 1:
+            conn.commit()
+            return True
+        conn.rollback()
+        return False
+    except Exception as e:
+        print(f"Error al activar vehiculo: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()
+
+def desactivar_vehiculo(id_vehiculo, id_razon=None):
+    """Desactiva un vehículo cambiando su estado a 'inactivo' y guardando la razón"""
+    conn = get_conexion()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "UPDATE VEHICULOS SET Estado = 'inactivo', ID_RazonInactivacion = ? WHERE ID_Vehiculo = ?",
+            (id_razon, id_vehiculo)
+        )
+        affected = cursor.rowcount
+        if affected == 1:
+            conn.commit()
+            return True
+        conn.rollback()
+        return False
+    except Exception as e:
+        print(f"Error al desactivar vehiculo: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()

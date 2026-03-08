@@ -93,17 +93,36 @@ def inserte_usuario(data):
             return False, "No se pudo insertar el usuario"
     except pyodbc.IntegrityError as e:
         conexion.rollback()
-        error_msg = str(e)
-        if "Violation of UNIQUE KEY constraint" in error_msg or "Cannot insert duplicate key" in error_msg:
-            if "Cedula" in error_msg:
-                return False, "Ya existe un usuario registrado con esta Cédula."
-            elif "Correo_Electronico" in error_msg or "Correo" in error_msg:
-                return False, "Ya existe un usuario registrado con este Correo Electrónico."
-            elif "Licencia" in error_msg:
-                return False, "Ya existe un usuario registrado con esta Licencia."
-            else:
-                return False, "Ya existe un usuario con estos datos únicos."
-        return False, f"Error de integridad en la base de datos."
+        # Verificar qué campo causó la duplicidad buscando los datos enviados
+        try:
+            cursor = conexion.cursor()
+            
+            # Verificar Cedula
+            cursor.execute("SELECT 1 FROM USUARIOS WHERE Cedula = ?", (data['Cedula'],))
+            if cursor.fetchone():
+                return False, f"La Cédula '{data['Cedula']}' ya está registrada."
+
+            # Verificar Correo
+            cursor.execute("SELECT 1 FROM USUARIOS WHERE Correo_Electronico = ?", (data['Correo_Electronico'],))
+            if cursor.fetchone():
+                return False, f"El Correo '{data['Correo_Electronico']}' ya está registrado."
+
+            # Verificar Telefono
+            cursor.execute("SELECT 1 FROM USUARIOS WHERE Telefono = ?", (data['Telefono'],))
+            if cursor.fetchone():
+                return False, f"El Teléfono '{data['Telefono']}' ya está registrado."
+
+            # Verificar Licencia
+            if data.get('Licencia_Conducir'):
+                cursor.execute("SELECT 1 FROM USUARIOS WHERE Licencia_Conducir = ?", (data['Licencia_Conducir'],))
+                if cursor.fetchone():
+                    return False, f"La Licencia '{data['Licencia_Conducir']}' ya está registrada."
+            
+            # Si no encontramos el duplicado pero dio error (raro, pero posible por otros constraints)
+            return False, f"Error de duplicidad: {str(e)}"
+            
+        except Exception as check_err:
+            return False, f"Error validando duplicados: {str(e)}"
     except Exception as e:
         conexion.rollback()
         return False, f"Error del sistema: {str(e)}"

@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles.css";
 
+// API URL from environment or default to relative path for development
+const API_URL = process.env.REACT_APP_API_URL || '';
+
 export default function Login({ onLogin }) {
   const navigate = useNavigate();
   const [formulario, setFormulario] = useState({ Cedula: "", Password: "" });
@@ -33,7 +36,7 @@ export default function Login({ onLogin }) {
     }
 
     try {
-      const res = await fetch('/api/usuarios/login', {
+      const res = await fetch(`${API_URL}/api/usuarios/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formulario),
@@ -42,9 +45,17 @@ export default function Login({ onLogin }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
 
-      onLogin(data);
+      // Store JWT token in localStorage
+      if (data.token) {
+        localStorage.setItem('authToken', data.token);
+      }
+      
+      // Pass user data to parent component
+      const userData = data.user || data;
+      onLogin(userData);
+      
       setExito("✅ Inicio de sesión exitoso. Redirigiendo...");
-      setTimeout(() => navigate(data.esAdmin ? '/admin' : '/'), 2000);
+      setTimeout(() => navigate(userData.esAdmin ? '/admin' : '/'), 2000);
 
     } catch (err) {
       setError(err.message);

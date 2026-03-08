@@ -1,7 +1,5 @@
 from app.repositorio.repositorio_reservacion import obtener_reservaciones, obtener_reservaciones_por_usuario, obtener_reservacion_por_id, crear_reservacion, actualizar_reservacion, eliminar_reservacion, generar_pdf_reservacion
-from app.repositorio.repositorio_usuario import inserte_usuario, obtener_usuarios_por_correo, obtener_usuarios_por_cedula
-from flask import jsonify, send_file, request
-from flask import Response
+from flask import jsonify, request, current_app
 
 def obtener_todas_las_reservaciones():
     try:
@@ -9,7 +7,7 @@ def obtener_todas_las_reservaciones():
         return jsonify(reservaciones)
     except Exception as e:
         print(f"Error en controlador obtener_todas_las_reservaciones: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error interno"}), 500
 
 def obtener_reservaciones_usuario(id_usuario):
     try:
@@ -17,7 +15,7 @@ def obtener_reservaciones_usuario(id_usuario):
         return jsonify(reservaciones)
     except Exception as e:
         print(f"Error en controlador obtener_reservaciones_usuario {id_usuario}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error interno"}), 500
 
 def obtener_reservacion(id_reservacion):
     try:
@@ -27,52 +25,17 @@ def obtener_reservacion(id_reservacion):
         return jsonify({"error": "Reservación no encontrada"}), 404
     except Exception as e:
         print(f"Error en controlador obtener_reservacion {id_reservacion}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error interno"}), 500
 
 def crear_nueva_reservacion(data):
     try:
-        # Lógica de Guest / Creación de Usuario al vuelo
         id_usuario = data.get('ID_Usuario')
-        
-        # Si no viene ID o es 0/Guest, intentamos registrarlo
-        if not id_usuario or str(id_usuario) == '0':
-            email = data.get('Correo_Electronico')
-            cedula = data.get('Cedula')
-            
-            if not email or not cedula:
-                return jsonify({"error": "Datos de contacto incompletos para reservación sin cuenta"}), 400
-
-            # Validar si existe
-            # OJO: Si existe, para simplificar sin login, podríamos RECHAZAR y pedir login 
-            # O usar ese ID (inseguro si se permite cualquiera).
-            # Por seguridad básica: Si existe, pedir login.
-            existe_email = obtener_usuarios_por_correo(email)
-            existe_cedula = obtener_usuarios_por_cedula(cedula)
-            
-            if existe_email or existe_cedula:
-                return jsonify({"error": "Ya existe un usuario con este correo o cédula. Por favor inicie sesión."}), 400
-                
-            # Crear Nuevo Usuario Guest
-            nuevo_usuario = {
-                "Nombre": data.get('Nombre'),
-                "Apellido": data.get('Apellido'),
-                "Cedula": cedula,
-                "Correo_Electronico": email,
-                "Telefono": data.get('Telefono'),
-                "Direccion": data.get('Direccion', 'N/A'), # Hero no manda direccion, ponemos N/A
-                "Licencia_Conducir": data.get('Licencia_Conducir'),
-                "Password": "GuestUser123!", # Password dummy conocido o aleatorio
-                "esAdmin": 0
-            }
-            
-            exito, usuario_creado = inserte_usuario(nuevo_usuario)
-            if not exito:
-                return jsonify({"error": f"Error al registrar usuario temporal: {usuario_creado}"}), 500
-                
-            data['ID_Usuario'] = usuario_creado['ID_Usuario']
-            print(f"Usuario temporal creado: {usuario_creado['ID_Usuario']}")
+        if not id_usuario or int(id_usuario) <= 0:
+            return jsonify({"error": "Autenticación requerida para reservar"}), 401
 
         resultado = crear_reservacion(data)
+        if "error" in resultado:
+            return jsonify({"error": "No se pudo crear la reservación"}), 400
         
         if "id" in resultado:
             id_reservacion = resultado["id"]
@@ -97,40 +60,46 @@ def crear_nueva_reservacion(data):
                         )
                         resultado["email_enviado_usuario"] = email_enviado_usuario
                     
-                    # 2. Enviar a mi correo de administración
-                    destinatario_admin = "martineznick633@gmail.com"
-                    email_enviado_admin = enviar_email_con_pdf(
-                        destinatario_admin,
-                        f"Nueva Reservación #{id_reservacion} - {reservacion.get('Nombre', '')}",
-                        f"<html><body><h1>Nueva Reservación Registrada</h1><p><strong>ID:</strong> {id_reservacion}<br><strong>Cliente:</strong> {reservacion.get('Nombre', '')} {reservacion.get('Apellido', '')}<br><strong>Correo:</strong> {reservacion.get('Correo_Electronico', '')}<br><strong>Monto:</strong> ${reservacion.get('Monto_Reservacion', 0):,.2f}</p></body></html>",
-                        pdf_bytes,
-                        f"reservacion_{id_reservacion}.pdf"
-                    )
-                    resultado["email_enviado_admin"] = email_enviado_admin
+                    admin_email = current_app.config.get('ADMIN_EMAIL')
+                    if admin_email:
+                        email_enviado_admin = enviar_email_con_pdf(
+                            admin_email,
+                            f"Nueva Reservación #{id_reservacion} - {reservacion.get('Nombre', '')}",
+                            f"<html><body><h1>Nueva Reservación Registrada</h1><p><strong>ID:</strong> {id_reservacion}<br><strong>Cliente:</strong> {reservacion.get('Nombre', '')} {reservacion.get('Apellido', '')}<br><strong>Correo:</strong> {reservacion.get('Correo_Electronico', '')}<br><strong>Monto:</strong> ${reservacion.get('Monto_Reservacion', 0):,.2f}</p></body></html>",
+                            pdf_bytes,
+                            f"reservacion_{id_reservacion}.pdf"
+                        )
+                        resultado["email_enviado_admin"] = email_enviado_admin
                     
             except Exception as e:
-                resultado["email_error"] = str(e)
+                print(f"Error enviando correo reservación {id_reservacion}: {e}")
+                resultado["email_error"] = "Error al enviar correo"
             
         return jsonify(resultado), 201
         
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error crear_nueva_reservacion: {e}")
+        return jsonify({"error": "Error interno"}), 500
     
 def actualizar_reservacion_existente(id_reservacion, data):
     try:
         resultado = actualizar_reservacion(id_reservacion, data)
-        return jsonify(resultado), 200 if "message" in resultado else 400
+        if "message" in resultado:
+            return jsonify(resultado), 200
+        return jsonify({"error": "No se pudo actualizar la reservación"}), 400
     except Exception as e:
         print(f"Error en controlador actualizar_reservacion_existente {id_reservacion}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error interno"}), 500
 
 def eliminar_reservacion_existente(id_reservacion):
     try:
         resultado = eliminar_reservacion(id_reservacion)
-        return jsonify(resultado), 200 if "message" in resultado else 400
+        if "message" in resultado:
+            return jsonify(resultado), 200
+        return jsonify({"error": "No se pudo eliminar la reservación"}), 400
     except Exception as e:
         print(f"Error en controlador eliminar_reservacion_existente {id_reservacion}: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error interno"}), 500
 
 def obtener_pdf_reservacion(id_reservacion):
     """Genera PDF y devuelve bytes directos"""

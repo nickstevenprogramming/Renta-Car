@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+const API_URL = process.env.REACT_APP_API_URL || '';
 import Navbar from "./componentes/Navbar";
 import Hero from "./componentes/Hero";
 import Servicios from "./componentes/Servicios";
@@ -9,15 +11,23 @@ import AdminDashboard from "./componentes/AdminDashboard";
 import Login from "./componentes/login";
 import Register from "./componentes/Register";
 import Categorias from "./componentes/categorias";
+import ReservationModal from "./componentes/ReservationModal";
 
 function App() {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [usuario, setUsuario] = useState(null);
   const [vehicleFilter, setVehicleFilter] = useState("todos");
   const [vehiculos, setVehiculos] = useState([]);
+  
+  // Estado para el modal de reservación
+  const [reservationModal, setReservationModal] = useState({
+    isOpen: false,
+    vehicle: null,
+    initialDates: null
+  });
 
   useEffect(() => {
-    fetch("/api/vehiculos")
+    fetch(`${API_URL}/api/vehiculos`)
       .then((res) => res.json())
       .then((data) => setVehiculos(data))
       .catch((err) => console.error("Error cargando vehículos:", err));
@@ -29,6 +39,25 @@ function App() {
     console.log("Vehículo seleccionado en App:", vehicle);
     const heroSection = document.querySelector(".hero-section");
     if (heroSection) heroSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  // Handler para abrir el modal de reservación
+  function handleOpenReservation(vehicle, dates = null) {
+    console.log("Abriendo modal de reservación para:", vehicle);
+    setReservationModal({
+      isOpen: true,
+      vehicle,
+      initialDates: dates
+    });
+  }
+
+  // Handler para cerrar el modal
+  function handleCloseReservation() {
+    setReservationModal({
+      isOpen: false,
+      vehicle: null,
+      initialDates: null
+    });
   }
 
   function handleCategorySelect(category) {
@@ -81,11 +110,12 @@ function App() {
                   selectedVehicle={selectedVehicle} 
                   usuario={usuario} 
                   onCategorySelect={handleCategorySelect} 
-                  vehiculos={vehiculos} // Pass vehicles for dynamic dropdown
+                  vehiculos={vehiculos}
                 />
                 <Servicios />
                 <SeccionCarros 
-                  onSelectVehicle={handleSelectVehicle} 
+                  onSelectVehicle={handleSelectVehicle}
+                  onOpenReservation={handleOpenReservation}
                   currentFilter={vehicleFilter} 
                   onFilterChange={setVehicleFilter}
                   vehiculos={vehiculos} 
@@ -115,6 +145,15 @@ function App() {
         </Routes>
       </main>
       <Footer />
+
+      {/* Modal de Reservación Global */}
+      <ReservationModal
+        isOpen={reservationModal.isOpen}
+        onClose={handleCloseReservation}
+        vehicle={reservationModal.vehicle}
+        initialDates={reservationModal.initialDates}
+        usuario={usuario}
+      />
     </Router>
   );
 }

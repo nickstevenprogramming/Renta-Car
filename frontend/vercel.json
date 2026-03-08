@@ -1,6 +1,12 @@
 {
-  "buildCommand": "npm run start",
-  "outputDirectory": "start",
-  "framework": null,
-  "installCommand": "npm ci"
+  "framework": "create-react-app",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
 }

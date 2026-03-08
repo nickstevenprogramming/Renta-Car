@@ -9,12 +9,15 @@ from app.repositorio.repositorio_usuario import (
     obtener_usuarios_por_cedula,
     obtener_usuarios_por_correo,
 )
+from app.utils.auth import generate_token
+
 def listar_controlador_usuarios():
     try:
         usuarios = obtener_usuarios()
         return jsonify(usuarios)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error listar usuarios: {e}")
+        return jsonify({"error": "Error interno"}), 500
 
 def obtener_controlador_usuarios(id_usuario):
     try:
@@ -23,7 +26,8 @@ def obtener_controlador_usuarios(id_usuario):
             return jsonify(usuario)
         return jsonify({"error": "Usuario no encontrado"}), 404
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"Error obtener usuario {id_usuario}: {e}")
+        return jsonify({"error": "Error interno"}), 500
 
 def crear_controlador_usuario(data):
     try:
@@ -75,16 +79,23 @@ def eliminar_controlador_usuario(id_usuario):
 def login_controlador_usuario():
     try:
         data = request.get_json()
-        print(f"Datos recibidos en login: {data}")  # Depuración
         if not data or not all(k in data for k in ("Cedula", "Password")):
             return jsonify({"error": "Faltan credenciales"}), 400
 
         user = obtener_usuarios_por_cedula(data["Cedula"])
         if user and check_password_hash(user["Password"], data["Password"]):
+            # Generate JWT token
+            token = generate_token(user["ID_Usuario"], user.get("esAdmin", 0))
+            
+            # Remove password from response
             user.pop("Password", None)
-            return jsonify(user), 200
+            
+            # Return user data with token
+            return jsonify({
+                "token": token,
+                "user": user
+            }), 200
         return jsonify({"error": "Credenciales inválidas"}), 401
     except Exception as e:
         print(f"Error al iniciar sesión: {e}")
         return jsonify({"error": "Error interno"}), 500
-    

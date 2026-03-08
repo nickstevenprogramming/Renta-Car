@@ -1,3 +1,4 @@
+import os
 import sys
 import traceback
 from pathlib import Path
@@ -25,4 +26,7 @@ if __name__ == "__main__":
         print("No se pudo listar reglas de URL:")
         traceback.print_exc()
 
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    debug_mode = os.getenv("FLASK_DEBUG", "false").lower() == "true"
+    host = os.getenv("FLASK_HOST", "127.0.0.1")
+    port = int(os.getenv("FLASK_PORT", "5000"))
+    app.run(debug=debug_mode, host=host, port=port)
